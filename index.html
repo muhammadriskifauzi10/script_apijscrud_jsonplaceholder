@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JS API Placeholder</title>
+</head>
+<body>
+
+    <form id="formdata">
+        <input type="text" name="name">
+        <input type="text" name="email">
+        <input type="text" name="phone">
+        <input type="submit" value="Save">
+    </form>
+
+    <div id="action">
+    </div>
+
+    <table>
+        <thead>
+            <th>No</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Aksi</th>
+        </thead>
+        <tbody id="users">
+        </tbody>
+    </table>
+
+    <script src="js/jquery.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            fetch('https://jsonplaceholder.typicode.com/users/')
+                .then((response) => response.json())
+                .then((data) => {
+                    data.map((value, key) => {
+                        $("#users").append(`
+                            <tr id="data${value.id}">
+                                <td>${key + 1}</td>
+                                <td id="name${value.id}">${value.name}</td>
+                                <td id="email${value.id}">${value.email}</td>
+                                <td id="phone${value.id}">${value.phone}</td>
+                                <td id="action${value.id}">
+                                    <button type="button" onclick="detailData(${value.id})">Detail</button>    
+                                    <button type="button" onclick="editData(${value.id})">Edit</button>    
+                                    <button type="button" onclick="deleteData(${value.id})">Delete</button>    
+                                </td>
+                            </tr>
+                        `)
+                    })
+            })
+
+            $("#formdata").on("submit", function(e) {
+                e.preventDefault()
+                let no = ($('tr').length)
+
+                let data = {
+                    'name': $("input[name='name']").val(),
+                    'email': $("input[name='email']").val(),
+                    'phone': $("input[name='phone']").val(),
+                }
+
+                fetch('https://jsonplaceholder.typicode.com/users', {
+                    method: 'POST',
+                    body: JSON.stringify(data),
+                    headers: {
+                        'Content-type': 'application/json; charset=UTF-8',
+                    },
+                    })
+                    .then((response) => response.json())
+                    .then((data) => {
+                        $("#users").append(`
+                            <tr id="data${data.id}">
+                                <td>${no}</td>
+                                <td id="name${data.id}">${data.name}</td>
+                                <td id="email${data.id}">${data.email}</td>
+                                <td id="phone${data.id}">${data.phone}</td>
+                                <td id="action${data.id}">
+                                    <button type="button" onclick="detailData(${data.id})">Detail</button>    
+                                    <button type="button" onclick="editData(${data.id})">Edit</button>   
+                                    <button type="button" onclick="deleteData(${data.id})">Delete</button> 
+                                </td>
+                            </tr>
+                        `)
+                });
+            })
+        })
+
+        function detailData(id) {
+            fetch(`https://jsonplaceholder.typicode.com/users/${id}`)
+            .then((response) => response.json())
+            .then((data) => {
+                $('#action').empty()
+                $("#action").append(`
+                    <button type="button" onclick="removeDetail()">Remove</button>
+                    <ul>
+                        <li>${data.name}</li>
+                        <li>${data.email}</li>
+                        <li>${data.phone}</li>
+                    </ul>
+                `)
+            })
+        }
+
+        function removeDetail() {
+            $('#action').empty()
+        }
+
+        function editData(id) {
+            $("#name" + id).empty()
+            $("#email" + id).empty()
+            $("#phone" + id).empty()
+            $("#action" + id).empty()
+
+            $("#name" + id).append(`
+                <input type="text" id="formname${id}">
+                `)
+            $("#email" + id).append(`
+                <input type="text" id="formemail${id}">
+                `)
+            $("#phone" + id).append(`
+                <input type="text" id="formphone${id}">
+            `)
+            $("#action" + id).append(`
+                <button type="button" onclick="updateData(${id})">Update</button>    
+                <button type="button" onclick="cancelUpdateData(${id})">Cancel</button>    
+            `)
+        }
+
+        function cancelUpdateData(id) {
+            fetch(`https://jsonplaceholder.typicode.com/users/${id}`)
+            .then((response) => response.json())
+            .then((data) => {
+                $("#action" + id).empty()
+
+                $("#name" + id).text(data.name)
+                $("#email" + id).text(data.email)
+                $("#phone" + id).text(data.phone)
+                $("#action" + id).append(`
+                    <button type="button" onclick="detailData(${id})">Detail</button>    
+                    <button type="button" onclick="editData(${id})">Edit</button>  
+                    <button type="button" onclick="deleteData(${id})">Delete</button>    
+                `)
+            })
+
+        }
+
+        function updateData(id) {
+            let data = {
+                'name': $("#formname" + id).val(),
+                'email': $("#formemail" + id).val(),
+                'phone': $("#formphone" + id).val(),
+            }
+
+            fetch(`https://jsonplaceholder.typicode.com/users/${id}`, {
+                method: 'PATCH',
+                body: JSON.stringify(data),
+                headers: {
+                    'Content-type': 'application/json; charset=UTF-8',
+                },
+                })
+                .then((response) => response.json())
+                .then((data) => {
+                    $("#action" + id).empty()
+
+                    $("#name" + id).text(data.name)
+                    $("#email" + id).text(data.email)
+                    $("#phone" + id).text(data.phone)
+                    $("#action" + id).append(`
+                        <button type="button" onclick="detailData(${id})">Detail</button>    
+                        <button type="button" onclick="editData(${id})">Edit</button> 
+                        <button type="button" onclick="deleteData(${id})">Delete</button>     
+                    `)
+            });
+        }
+    
+        function deleteData(id) {
+            fetch('https://jsonplaceholder.typicode.com/users/')
+                .then((response) => response.json())
+                .then((data) => {
+                    $("#users").empty()
+                    data.filter((value) => value.id != id).map((value, key) => {
+                        $("#users").append(`
+                            <tr id="data${value.id}">
+                                <td>${key + 1}</td>
+                                <td id="name${value.id}">${value.name}</td>
+                                <td id="email${value.id}">${value.email}</td>
+                                <td id="phone${value.id}">${value.phone}</td>
+                                <td id="action${value.id}">
+                                    <button type="button" onclick="detailData(${value.id})">Detail</button>    
+                                    <button type="button" onclick="editData(${value.id})">Edit</button>    
+                                    <button type="button" onclick="deleteData(${value.id})">Delete</button>    
+                                </td>
+                            </tr>
+                        `)
+                    })
+            })
+        }
+    </script>
+</body>
+</html>
